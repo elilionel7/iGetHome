@@ -71,4 +71,17 @@ const requireAuth = function (req, _res, next) {
   return next(err);
 };
 
-module.exports = { setTokenCookie, restoreUser, requireAuth };
+// Require Admin Middleware
+const requireAdmin = (req, _res, next) => {
+  if (req.user && req.user.isAdmin) {
+    return next();
+  }
+
+  const err = new Error('Forbidden');
+  err.status = 403;
+  err.message = 'Forbidden';
+  err.errors = { message: 'You do not have permission to perform this action' };
+  return next(err);
+};
+
+module.exports = { setTokenCookie, restoreUser, requireAuth, requireAdmin };
