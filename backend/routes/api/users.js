@@ -9,7 +9,6 @@ const { handleValidationErrors } = require('../../utils/validation');
 const { User } = require('../../db/models');
 
 const router = express.Router();
-const { Op } = require('sequelize');
 
 const validateSignup = [
   check('firstName', 'First Name is required').notEmpty(),
