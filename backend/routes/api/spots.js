@@ -3,7 +3,13 @@ const { restoreUser, requireAuth } = require('../../utils/auth');
 const { handleValidationErrors } = require('../../utils/validation');
 const { check } = require('express-validator');
 
-const { Spot, Review, SpotImage, User } = require('../../db/models');
+const {
+  Spot,
+  Review,
+  SpotImage,
+  User,
+  ReviewImage,
+} = require('../../db/models');
 const Sequelize = require('sequelize');
 
 const router = express.Router();
@@ -18,7 +24,7 @@ router.get('/', async (req, res, next) => {
         },
         {
           model: SpotImage,
-          as: 'SpotImages',
+          as: 'previewImage',
           attributes: ['url'],
           where: { preview: true },
           limit: 1,
@@ -36,8 +42,7 @@ router.get('/', async (req, res, next) => {
       let spotData = spot.get({ plain: true });
       spotData.avgRating = spot.dataValues.avgRating;
       spotData.previewImage =
-        spot.SpotImages.length > 0 ? spot.SpotImages[0].url : null;
-      delete spotData.SpotImages;
+        spot.previewImage.length > 0 ? spot.previewImage[0].url : null;
       return spotData;
     });
 
@@ -61,7 +66,7 @@ router.get('/current', restoreUser, requireAuth, async (req, res, next) => {
         },
         {
           model: SpotImage,
-          as: 'SpotImages',
+          as: 'previewImage',
           attributes: ['url'],
           where: { preview: true },
           limit: 1,
@@ -79,10 +84,7 @@ router.get('/current', restoreUser, requireAuth, async (req, res, next) => {
       let spotData = spot.get({ plain: true });
       spotData.avgRating = spot.dataValues.avgRating;
       spotData.previewImage =
-        spot.SpotImages && spot.SpotImages.length > 0
-          ? spot.SpotImages[0].url
-          : null;
-      delete spotData.SpotImages;
+        spot.previewImage.length > 0 ? spot.previewImage[0].url : null;
       return spotData;
     });
 
@@ -132,7 +134,6 @@ router.get('/:spotId', async (req, res, next) => {
 
     const spotData = spot.get({ plain: true });
 
-    // Format the avgStarRating to have one decimal point
     if (spotData.avgStarRating) {
       spotData.avgStarRating = parseFloat(spotData.avgStarRating.toFixed(1));
     }
@@ -234,7 +235,7 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 });
 
 // Edit a Spot
-const validateSpotUpdate = [
+const validateSpotEdit = [
   check('address')
     .exists({ checkFalsy: true })
     .withMessage('Street address is required'),
@@ -258,10 +259,11 @@ const validateSpotUpdate = [
   check('price').isFloat({ min: 0 }).withMessage('Price per day is required'),
   handleValidationErrors,
 ];
+// Edit a Spot
 router.put(
   '/:spotId',
   requireAuth,
-  validateSpotUpdate,
+  validateSpotEdit,
   async (req, res, next) => {
     try {
       const spotId = req.params.spotId;
@@ -325,5 +327,77 @@ router.delete('/:spotId', requireAuth, async (req, res, next) => {
     next(error);
   }
 });
+
+// Get all Reviews by a Spot's id
+router.get('/:spotId/reviews', async (req, res, next) => {
+  const { spotId } = req.params;
+  try {
+    const spot = await Spot.findByPk(spotId);
+    if (!spot) {
+      return res.status(404).json({ message: "Spot couldn't be found" });
+    }
+    const reviews = await Review.findAll({
+      where: { spotId: spotId },
+      include: [
+        {
+          model: User,
+          as: 'User',
+          attributes: ['id', 'firstName', 'lastName'],
+        },
+        { model: ReviewImage, attributes: ['id', 'url'] },
+      ],
+    });
+    res.status(200).json({ Reviews: reviews });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const validateReview = [
+  check('review')
+    .exists({ checkFalsy: true })
+    .withMessage('Review text is required'),
+  check('stars')
+    .isInt({ min: 1, max: 5 })
+    .withMessage('Stars must be an integer from 1 to 5'),
+  handleValidationErrors,
+];
+
+// Create a Review for a Spot based on the Spot's id
+router.post(
+  '/:spotId/reviews',
+  validateReview,
+  requireAuth,
+  async (req, res, next) => {
+    try {
+      const { spotId } = req.params;
+      const { review, stars } = req.body;
+
+      const spot = await Spot.findByPk(spotId);
+      if (!spot) {
+        return res.status(404).json({ message: "Spot couldn't be found" });
+      }
+
+      const existingReview = await Review.findOne({
+        where: { spotId, userId: req.user.id },
+      });
+      if (existingReview) {
+        return res
+          .status(500)
+          .json({ message: 'User already has a review for this spot' });
+      }
+
+      const newReview = await Review.create({
+        userId: req.user.id,
+        spotId,
+        review,
+        stars,
+      });
+      res.status(201).json(newReview);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 module.exports = router;

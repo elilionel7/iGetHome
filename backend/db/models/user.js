@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       User.hasMany(models.Spot, { foreignKey: 'ownerId', as: 'OwnedSpots' });
       User.hasMany(models.Booking, { foreignKey: 'userId' });
-      User.hasMany(models.Review, { foreignKey: 'userId' });
+      User.hasMany(models.Review, { foreignKey: 'userId', as: 'User' });
     }
   }
   User.init(

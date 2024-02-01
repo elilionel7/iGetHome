@@ -38,7 +38,6 @@ router.post('/', validateSignup, async (req, res) => {
     });
   }
 
-  // Check for existing username
   const existingUsernameUser = await User.findOne({
     where: { username: username },
   });
