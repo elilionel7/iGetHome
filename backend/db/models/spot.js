@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       Spot.hasMany(models.Review, { foreignKey: 'spotId' });
       Spot.hasMany(models.SpotImage, {
         foreignKey: 'spotId',
-        as: 'previewImage',
+        as: 'SpotImages',
       });
     }
   }
@@ -92,11 +92,11 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'Spot',
-      // defaultScope: {
-      //   attributes: {
-      //     exclude: ['address', 'createdAt', 'updatedAt'],
-      //   },
-      // },
+      defaultScope: {
+        attributes: {
+          exclude: ['address', 'createdAt', 'updatedAt'],
+        },
+      },
     }
   );
   return Spot;

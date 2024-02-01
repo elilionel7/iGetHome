@@ -22,7 +22,7 @@ module.exports = {
           onDelete: 'SET NULL', // or 'CASCADE' if you want to delete spots when the user is deleted
         },
         address: {
-          type: Sequelize.STRING(350),
+          type: Sequelize.STRING,
           allowNull: false,
           unique: true,
         },
