@@ -40,7 +40,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
       ],
     });
 
-    const transformedBookings = bookings.map((booking) => {
+    const formattedBookings = bookings.map((booking) => {
       const { id, userId, spotId, startDate, endDate, Spot } = booking;
 
       const newBooking = {
@@ -69,7 +69,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
       return newBooking;
     });
 
-    res.json({ Bookings: transformedBookings });
+    res.json({ Bookings: formattedBookings });
   } catch (error) {
     next(error);
   }

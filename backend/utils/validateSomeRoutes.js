@@ -1,12 +1,34 @@
-const { check, body } = require('express-validator');
+const { check, body, query } = require('express-validator');
 const moment = require('moment');
 
 const { handleValidationErrors } = require('./validation');
 
+const validateQueryParams = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be greater than or equal to 1'),
+  query('size')
+    .optional()
+    .isInt({ min: 1, max: 20 })
+    .withMessage('Size must be between 1 and 20'),
+  query('minLat')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Minimum latitude is invalid'),
+  handleValidationErrors,
+];
+
 const validateSpotCreation = [
   check('address')
     .exists({ checkFalsy: true })
-    .withMessage('Street address is required'),
+    .withMessage('Street address is required')
+    .custom(async (value) => {
+      const existingSpot = await Spot.findOne({ where: { address: value } });
+      if (existingSpot) {
+        return Promise.reject('Address must be unique');
+      }
+    }),
   check('city').exists({ checkFalsy: true }).withMessage('City is required'),
   check('state').exists({ checkFalsy: true }).withMessage('State is required'),
   check('country')
@@ -92,6 +114,7 @@ const validateBookingDates = [
   handleValidationErrors,
 ];
 module.exports = {
+  validateQueryParams,
   validateSpotCreation,
   validateSpotEdit,
   validateBooking,

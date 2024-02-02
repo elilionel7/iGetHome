@@ -3,6 +3,7 @@ const express = require('express');
 const { restoreUser, requireAuth } = require('../../utils/auth');
 const { handleValidationErrors } = require('../../utils/validation');
 const { check } = require('express-validator');
+const { fn, col, Op, literal } = require('sequelize');
 
 const {
   Spot,
@@ -22,8 +23,10 @@ const validateReview = [
   handleValidationErrors,
 ];
 
+const moment = require('moment'); // Ensure you have moment.js installed
+
 // Get All Reviews of the Current User
-router.get('/current', restoreUser, requireAuth, async (req, res, next) => {
+router.get('/current', requireAuth, async (req, res, next) => {
   try {
     const reviews = await Review.findAll({
       where: { userId: req.user.id },
@@ -47,15 +50,32 @@ router.get('/current', restoreUser, requireAuth, async (req, res, next) => {
             'lng',
             'name',
             'price',
-          ],
-          include: [
-            { model: SpotImage, attributes: ['url'], as: 'previewImage' },
+            [
+              literal(`(
+              SELECT url FROM SpotImages WHERE
+              SpotImages.spotId = Spot.id AND
+              SpotImages.preview = true
+              LIMIT 1
+            )`),
+              'previewImage',
+            ],
           ],
         },
-        { model: ReviewImage, attributes: ['id', 'url'] },
+        {
+          model: ReviewImage,
+          attributes: ['id', 'url'],
+          as: 'ReviewImages',
+        },
       ],
     });
-    res.json({ Reviews: reviews });
+
+    const formattedReviews = reviews.map((review) => ({
+      ...review.get({ plain: true }),
+      createdAt: moment(review.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+      updatedAt: moment(review.updatedAt).format('YYYY-MM-DD HH:mm:ss'),
+    }));
+
+    res.json({ Reviews: formattedReviews });
   } catch (error) {
     next(error);
   }
