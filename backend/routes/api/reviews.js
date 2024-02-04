@@ -75,48 +75,42 @@ router.get('/current', requireAuth, async (req, res, next) => {
 });
 
 //Add an Image to a Review
-router.post(
-  '/:reviewId/images',
-  requireAuth,
-  validateUrl,
-  async (req, res, next) => {
-    try {
-      const { reviewId } = req.params;
-      const { url } = req.body;
+router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
+  try {
+    const { reviewId } = req.params;
+    const { url } = req.body;
 
-      const review = await Review.findOne({
-        where: { id: reviewId, userId: req.user.id },
+    const review = await Review.findOne({
+      where: { id: reviewId, userId: req.user.id },
+    });
+    if (!review) {
+      return res.status(404).json({
+        message: "Review couldn't be found",
       });
-      if (!review) {
-        return res.status(404).json({
-          message: "Review couldn't be found",
-        });
-      }
-
-      const maxNumImage = await ReviewImage.count({ where: { reviewId } });
-      if (maxNumImage > 10) {
-        return res.status(403).json({
-          message: 'Maximum number of images for this resource was reached',
-        });
-      }
-
-      const reviewImage = await ReviewImage.create({ reviewId, url });
-      const resData = {
-        id: reviewImage.id,
-        url: reviewImage.url,
-      };
-
-      res.status(200).json(resData);
-    } catch (error) {
-      next(error);
     }
+
+    const maxNumImage = await ReviewImage.count({ where: { reviewId } });
+    if (maxNumImage >= 10) {
+      return res.status(403).json({
+        message: 'Maximum number of images for this resource was reached',
+      });
+    }
+
+    const reviewImage = await ReviewImage.create({ reviewId, url });
+    const resData = {
+      id: reviewImage.id,
+      url: reviewImage.url,
+    };
+
+    res.status(200).json(resData);
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Edit a review
 router.put(
   '/:reviewId',
-  restoreUser,
   requireAuth,
   validateReview,
   async (req, res, next) => {

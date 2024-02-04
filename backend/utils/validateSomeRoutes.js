@@ -3,6 +3,17 @@ const moment = require('moment');
 
 const { handleValidationErrors } = require('./validation');
 
+const validateSignup = [
+  check('email', 'Invalid email').isEmail(),
+  check('username', 'Username is required').notEmpty(),
+  check('username', 'Username cannot be an email').custom(
+    (value, { req }) => !value.includes('@')
+  ),
+  check('firstName', 'First Name is required').notEmpty(),
+  check('lastName', 'Last Name is required').notEmpty(),
+  handleValidationErrors,
+];
+
 const validateUrl = [
   check('url').isURL().withMessage('Invalid URL format'),
   handleValidationErrors,
@@ -16,10 +27,30 @@ const validateQueryParams = [
     .optional()
     .isInt({ min: 1, max: 20 })
     .withMessage('Size must be between 1 and 20'),
+  query('maxLat')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Maximum latitude is invalid'),
   query('minLat')
     .optional()
     .isFloat({ min: -90, max: 90 })
     .withMessage('Minimum latitude is invalid'),
+  query('maxLng')
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Maximum longitude is invalid'),
+  query('minLng')
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Minimum longitude is invalid'),
+  query('maxPrice')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Maximum price must be greater than or equal to 0'),
+  query('minPrice')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Minimum price must be greater than or equal to 0'),
   handleValidationErrors,
 ];
 
@@ -119,4 +150,5 @@ module.exports = {
   validateBooking,
   validateReview,
   validateBookingDates,
+  validateSignup,
 };

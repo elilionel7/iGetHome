@@ -62,11 +62,11 @@ router.get('/current', requireAuth, async (req, res, next) => {
 
       return {
         id: booking.id,
-        userId: booking.userId,
         spotId: booking.spotId,
+        Spot: spotDetails,
+        userId: booking.userId,
         startDate: booking.startDate,
         endDate: booking.endDate,
-        Spot: spotDetails, // This can be null if no Spot is associated
         createdAt: booking.createdAt,
         updatedAt: booking.updatedAt,
       };
@@ -92,7 +92,7 @@ router.put(
         return res.status(404).json({ message: "Booking couldn't be found" });
       }
 
-      if (moment().isAfter(booking.endDate)) {
+      if (new Date(booking.endDate) < new Date()) {
         return res
           .status(403)
           .json({ message: "Past bookings can't be modified" });
@@ -158,7 +158,10 @@ router.delete('/:bookingId', requireAuth, async (req, res, next) => {
       return res.status(404).json({ message: "Booking couldn't be found" });
     }
 
-    if (moment().isAfter(booking.startDate)) {
+    if (booking.userId !== userId && booking.Spot.ownerId !== userId) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    if (new Date(booking.startDate) <= new Date()) {
       return res
         .status(403)
         .json({ message: "Bookings that have been started can't be deleted" });

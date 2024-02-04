@@ -24,6 +24,7 @@ const Sequelize = require('sequelize');
 const router = express.Router();
 
 // GET all spots with query filters
+
 router.get('/', validateQueryParams, async (req, res, next) => {
   try {
     let {
@@ -37,8 +38,8 @@ router.get('/', validateQueryParams, async (req, res, next) => {
       maxPrice,
     } = req.query;
 
-    page = parseInt(page);
-    size = parseInt(size);
+    page = parseInt(page, 10);
+    size = parseInt(size, 10);
 
     const whereClause = {
       ...(minLat && { lat: { [Sequelize.Op.gte]: parseFloat(minLat) } }),
@@ -49,10 +50,13 @@ router.get('/', validateQueryParams, async (req, res, next) => {
       ...(maxPrice && { price: { [Sequelize.Op.lte]: parseFloat(maxPrice) } }),
     };
 
+    // Perform the query
     const spotsData = await Spot.findAndCountAll({
       where: whereClause,
       attributes: {
-        include: [[fn('AVG', col('Reviews.stars')), 'avgRating']],
+        include: [
+          [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgRating'],
+        ],
       },
       include: [
         {
@@ -62,24 +66,27 @@ router.get('/', validateQueryParams, async (req, res, next) => {
         {
           model: SpotImage,
           as: 'SpotImages',
-          where: {
-            preview: true,
-          },
+          attributes: ['url'],
+          where: { preview: true },
           required: false,
         },
       ],
-      group: ['Spot.id', 'Spot.ownerId'],
+      group: ['Spot.id'],
       limit: size,
       offset: (page - 1) * size,
       subQuery: false,
+      distinct: true,
     });
 
     const spots = spotsData.rows.map((spot) => {
-      let previewImage = spot.SpotImages[0] ? spot.SpotImages[0].url : null;
-      let avgRatingValue = spot.get('avgRating');
+      const spotJSON = spot.toJSON();
+      const previewImage = spotJSON.SpotImages.length
+        ? spotJSON.SpotImages[0].url
+        : null;
+      delete spotJSON.SpotImages;
       return {
-        ...spot.get({ plain: true }),
-        avgRating: avgRatingValue ? avgRatingValue : null,
+        ...spotJSON,
+        avgRating: spotJSON.avgRating || null,
         previewImage,
       };
     });
@@ -94,39 +101,48 @@ router.get('/', validateQueryParams, async (req, res, next) => {
   }
 });
 
-// Get spot by current user
-router.get('/current', requireAuth, async (req, res) => {
+// Get spots by current user
+router.get('/current', requireAuth, async (req, res, next) => {
   try {
     const curUserId = req.user.id;
     const spotsCurUser = await Spot.findAll({
       where: { ownerId: curUserId },
       attributes: {
-        include: [[fn('AVG', col('Reviews.stars')), 'avgRating']],
+        include: [
+          [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgRating'],
+        ],
       },
       include: [
         {
           model: Review,
           attributes: [],
+          required: false,
         },
         {
           model: SpotImage,
           as: 'SpotImages',
+          attributes: ['url'],
           where: {
             preview: true,
           },
           required: false,
+          limit: 1,
         },
       ],
-      group: ['Spot.id', 'SpotImages.id'],
+      group: ['Spot.id'],
       subQuery: false,
     });
 
     const spots = spotsCurUser.map((spot) => {
-      let previewImage = spot.SpotImages[0] ? spot.SpotImages[0].url : null;
-      let avgRatingVal = spot.get('avgRating');
+      const spotJson = spot.toJSON(); // Convert to a plain JSON object
+      const previewImage =
+        spotJson.SpotImages && spotJson.SpotImages.length > 0
+          ? spotJson.SpotImages[0].url
+          : null;
+      delete spotJson.SpotImages;
       return {
-        ...spot.get({ plain: true }),
-        avgRating: avgRatingVal ? parseFloat(avgRatingVal).toFixed(1) : null,
+        ...spotJson,
+        avgRating: spotJson.avgRating ? parseFloat(spotJson.avgRating) : null,
         previewImage,
       };
     });
@@ -172,13 +188,13 @@ router.get('/:spotId', async (req, res, next) => {
       return res.status(404).json({ message: "Spot couldn't be found" });
     }
 
-    const spotData = spot.get({ plain: true });
+    const spotJson = spot.toJSON();
+    spotJson.avgStarRating = spotJson.avgStarRating
+      ? parseFloat(spotJson.avgStarRating)
+      : null;
+    spotJson.numReviews = spotJson.numReviews || 0;
 
-    if (spotData.avgStarRating) {
-      spotData.avgStarRating = parseFloat(spotData.avgStarRating);
-    }
-
-    res.status(200).json(spotData);
+    res.status(200).json(spotJson);
   } catch (error) {
     next(error);
   }
@@ -353,7 +369,7 @@ router.post(
   validateReview,
   async (req, res, next) => {
     try {
-      const { spotId } = req.params;
+      const spotId = parseInt(req.params.spotId, 10);
       const { review, stars } = req.body;
 
       const spot = await Spot.findByPk(spotId);
