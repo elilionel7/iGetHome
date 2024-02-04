@@ -1,7 +1,6 @@
 const express = require('express');
-const { restoreUser, requireAuth } = require('../../utils/auth');
+const { requireAuth } = require('../../utils/auth');
 const { Booking, Spot, SpotImage } = require('../../db/models');
-const moment = require('moment');
 const { Op } = require('sequelize');
 
 const { validateBookingDates } = require('../../utils/validateSomeRoutes');

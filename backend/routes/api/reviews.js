@@ -1,12 +1,8 @@
 // backend/routes/api/reviews.js
 const express = require('express');
-const { restoreUser, requireAuth } = require('../../utils/auth');
-const { check } = require('express-validator');
-const { fn, col, Op, literal } = require('sequelize');
-const {
-  validateUrl,
-  validateReview,
-} = require('../../utils/validateSomeRoutes');
+const { requireAuth } = require('../../utils/auth');
+const { literal } = require('sequelize');
+const { validateReview } = require('../../utils/validateSomeRoutes');
 
 const {
   Spot,

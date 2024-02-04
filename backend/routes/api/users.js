@@ -1,13 +1,9 @@
 // backend/routes/api/users.js
 const express = require('express');
 const bcrypt = require('bcryptjs');
-
-const { setTokenCookie, requireAuth } = require('../../utils/auth');
-const { check } = require('express-validator');
-
+const { setTokenCookie } = require('../../utils/auth');
 const { validateSignup } = require('../../utils/validateSomeRoutes');
 const { User } = require('../../db/models');
-
 const router = express.Router();
 
 // Sign up
