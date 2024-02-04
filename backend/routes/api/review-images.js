@@ -8,7 +8,6 @@ router.delete('/:imageId', requireAuth, async (req, res, next) => {
   try {
     const imageId = req.params.imageId;
     const reviewImage = await ReviewImage.findByPk(imageId);
-
     if (!reviewImage) {
       return res
         .status(404)

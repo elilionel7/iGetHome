@@ -1,5 +1,5 @@
 const express = require('express');
-const { requireAuth } = require('../../utils/auth');
+const { restoreUser, requireAuth } = require('../../utils/auth');
 const { Booking, Spot, SpotImage } = require('../../db/models');
 const moment = require('moment');
 const { Op } = require('sequelize');
@@ -32,8 +32,8 @@ router.get('/current', requireAuth, async (req, res, next) => {
               model: SpotImage,
               as: 'SpotImages',
               attributes: ['url'],
-              //where: { preview: true },
-              //required: false,
+              where: { preview: true },
+              required: false, // query does not fail if no SpotImages are found
             },
           ],
         },
@@ -41,32 +41,35 @@ router.get('/current', requireAuth, async (req, res, next) => {
     });
 
     const formattedBookings = bookings.map((booking) => {
-      const { id, userId, spotId, startDate, endDate, Spot } = booking;
+      const spotDetails = booking.Spot
+        ? {
+            id: booking.Spot.id,
+            ownerId: booking.Spot.ownerId,
+            address: booking.Spot.address,
+            city: booking.Spot.city,
+            state: booking.Spot.state,
+            country: booking.Spot.country,
+            lat: booking.Spot.lat,
+            lng: booking.Spot.lng,
+            name: booking.Spot.name,
+            price: booking.Spot.price,
+            previewImage:
+              booking.Spot.SpotImages && booking.Spot.SpotImages[0]
+                ? booking.Spot.SpotImages[0].url
+                : null,
+          }
+        : {}; //if there are no spot
 
-      const newBooking = {
-        id,
-        spotId,
-        Spot: {
-          id: Spot.id,
-          ownerId: Spot.ownerId,
-          address: Spot.address,
-          city: Spot.city,
-          state: Spot.state,
-          country: Spot.country,
-          lat: Spot.lat,
-          lng: Spot.lng,
-          name: Spot.name,
-          price: Spot.price,
-          previewImage: Spot.previewImage || Spot.SpotImages[0]?.url || null,
-        },
-        userId,
-        startDate,
-        endDate,
-        createdAt: moment(booking.createdAt).format('YYYY-MM-DD HH:mm:ss'),
-        updatedAt: moment(booking.updatedAt).format('YYYY-MM-DD HH:mm:ss'),
+      return {
+        id: booking.id,
+        userId: booking.userId,
+        spotId: booking.spotId,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        Spot: spotDetails, // This can be null if no Spot is associated
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
       };
-
-      return newBooking;
     });
 
     res.json({ Bookings: formattedBookings });

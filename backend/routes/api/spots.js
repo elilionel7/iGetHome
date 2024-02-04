@@ -18,7 +18,7 @@ const {
   ReviewImage,
   Booking,
 } = require('../../db/models');
-const { Op, fn, col } = require('sequelize');
+const { Op, fn, col, cast } = require('sequelize');
 const Sequelize = require('sequelize');
 
 const router = express.Router();
@@ -68,7 +68,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
           required: false,
         },
       ],
-      group: ['Spot.id'],
+      group: ['Spot.id', 'Spot.ownerId'],
       limit: size,
       offset: (page - 1) * size,
       subQuery: false,
@@ -79,9 +79,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
       let avgRatingValue = spot.get('avgRating');
       return {
         ...spot.get({ plain: true }),
-        avgRating: avgRatingValue
-          ? parseFloat(avgRatingValue).toFixed(1)
-          : null,
+        avgRating: avgRatingValue ? avgRatingValue : null,
         previewImage,
       };
     });
@@ -177,7 +175,7 @@ router.get('/:spotId', async (req, res, next) => {
     const spotData = spot.get({ plain: true });
 
     if (spotData.avgStarRating) {
-      spotData.avgStarRating = parseFloat(spotData.avgStarRating.toFixed(1));
+      spotData.avgStarRating = parseFloat(spotData.avgStarRating);
     }
 
     res.status(200).json(spotData);
@@ -414,8 +412,8 @@ router.get('/:spotId/bookings', requireAuth, async (req, res, next) => {
         userId: booking.userId,
         startDate: booking.startDate,
         endDate: booking.endDate,
-        createdAt: moment(booking.createdAt).format('YYYY-MM-DD HH:mm:ss'),
-        updatedAt: moment(booking.updatedAt).format('YYYY-MM-DD HH:mm:ss'),
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
       };
     });
 

@@ -1,9 +1,12 @@
 // backend/routes/api/reviews.js
 const express = require('express');
 const { restoreUser, requireAuth } = require('../../utils/auth');
-const { handleValidationErrors } = require('../../utils/validation');
 const { check } = require('express-validator');
 const { fn, col, Op, literal } = require('sequelize');
+const {
+  validateUrl,
+  validateReview,
+} = require('../../utils/validateSomeRoutes');
 
 const {
   Spot,
@@ -14,16 +17,6 @@ const {
 } = require('../../db/models');
 
 const router = express.Router();
-
-const validateReview = [
-  check('review').not().isEmpty().withMessage('Review text is required'),
-  check('stars')
-    .isInt({ min: 1, max: 5 })
-    .withMessage('Stars must be an integer from 1 to 5'),
-  handleValidationErrors,
-];
-
-const moment = require('moment'); // Ensure you have moment.js installed
 
 // Get All Reviews of the Current User
 router.get('/current', requireAuth, async (req, res, next) => {
@@ -71,8 +64,8 @@ router.get('/current', requireAuth, async (req, res, next) => {
 
     const formattedReviews = reviews.map((review) => ({
       ...review.get({ plain: true }),
-      createdAt: moment(review.createdAt).format('YYYY-MM-DD HH:mm:ss'),
-      updatedAt: moment(review.updatedAt).format('YYYY-MM-DD HH:mm:ss'),
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
     }));
 
     res.json({ Reviews: formattedReviews });
@@ -82,38 +75,43 @@ router.get('/current', requireAuth, async (req, res, next) => {
 });
 
 //Add an Image to a Review
-router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
-  try {
-    const { reviewId } = req.params;
-    const { url } = req.body;
+router.post(
+  '/:reviewId/images',
+  requireAuth,
+  validateUrl,
+  async (req, res, next) => {
+    try {
+      const { reviewId } = req.params;
+      const { url } = req.body;
 
-    const review = await Review.findOne({
-      where: { id: reviewId, userId: req.user.id },
-    });
-    if (!review) {
-      return res.status(404).json({
-        message: "Review couldn't be found",
+      const review = await Review.findOne({
+        where: { id: reviewId, userId: req.user.id },
       });
+      if (!review) {
+        return res.status(404).json({
+          message: "Review couldn't be found",
+        });
+      }
+
+      const maxNumImage = await ReviewImage.count({ where: { reviewId } });
+      if (maxNumImage > 10) {
+        return res.status(403).json({
+          message: 'Maximum number of images for this resource was reached',
+        });
+      }
+
+      const reviewImage = await ReviewImage.create({ reviewId, url });
+      const resData = {
+        id: reviewImage.id,
+        url: reviewImage.url,
+      };
+
+      res.status(200).json(resData);
+    } catch (error) {
+      next(error);
     }
-
-    const maxNumImage = await ReviewImage.count({ where: { reviewId } });
-    if (maxNumImage > 10) {
-      return res.status(403).json({
-        message: 'Maximum number of images for this resource was reached',
-      });
-    }
-
-    const reviewImage = await ReviewImage.create({ reviewId, url });
-    const resData = {
-      id: reviewImage.id,
-      url: reviewImage.url,
-    };
-
-    res.status(200).json(resData);
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 // Edit a review
 router.put(

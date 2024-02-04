@@ -13,14 +13,20 @@ module.exports = {
         {
           userId: 1, // assuming John Smith has an id of 1
           spotId: 1, // assuming the first spot has an id of 1
-          startDate: new Date('2022-11-19'),
-          endDate: new Date('2022-11-20'),
+          startDate: new Date('2030-11-22'),
+          endDate: new Date('2030-11-26'),
         },
         {
           userId: 2,
           spotId: 2,
-          startDate: new Date('2022-11-21'),
-          endDate: new Date('2022-11-22'),
+          startDate: new Date('2030-10-22'),
+          endDate: new Date('2030-10-26'),
+        },
+        {
+          userId: 3,
+          spotId: 3,
+          startDate: new Date('2030-10-22'),
+          endDate: new Date('2030-10-26'),
         },
       ],
       { validate: true }

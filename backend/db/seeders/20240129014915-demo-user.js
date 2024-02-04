@@ -4,6 +4,7 @@ const { User } = require('../models');
 const bcrypt = require('bcryptjs');
 
 let options = {};
+console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === 'production') {
   options.schema = process.env.SCHEMA; // define your schema in options object
 }
@@ -13,25 +14,25 @@ module.exports = {
     await User.bulkCreate(
       [
         {
-          firstName: 'John',
-          lastName: 'Smith',
-          email: 'john.smith@gmail.com',
-          username: 'JohnSmith',
-          hashedPassword: bcrypt.hashSync('passwordjohn'),
+          firstName: 'FirstTest',
+          lastName: 'AATester',
+          email: 'first.test@gmail.com',
+          username: 'firstaatester',
+          hashedPassword: bcrypt.hashSync('secret password'),
         },
         {
-          firstName: 'Demo',
-          lastName: 'Lition',
-          email: 'demo@user.io',
-          username: 'Demo-lition',
-          hashedPassword: bcrypt.hashSync('password'),
+          firstName: 'SecondTest',
+          lastName: 'AATester',
+          email: 'second.test@gmail.com',
+          username: 'secondaatester',
+          hashedPassword: bcrypt.hashSync('secret password'),
         },
         {
-          firstName: 'Demo1',
-          lastName: 'User1',
-          email: 'user1@user.io',
-          username: 'FakeUser1',
-          hashedPassword: bcrypt.hashSync('password2'),
+          firstName: 'ThirdTest',
+          lastName: 'AATester',
+          email: 'third.test@gmail.com',
+          username: 'thirdaatester',
+          hashedPassword: bcrypt.hashSync('secret password'),
         },
         {
           firstName: 'Demo2',
@@ -52,7 +53,12 @@ module.exports = {
       options,
       {
         username: {
-          [Op.in]: ['JohnSmith', 'Demo-lition', 'FakeUser1', 'FakeUser2'],
+          [Op.in]: [
+            'firstaatester',
+            'secondaatester',
+            'thirdaatester',
+            'FakeUser2',
+          ],
         },
       },
       {}

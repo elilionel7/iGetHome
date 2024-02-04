@@ -12,11 +12,15 @@ module.exports = {
       [
         {
           reviewId: 1, // assuming the first review has an id of 1
-          url: 'http://example.com/review_image_1.jpg',
+          url: 'image.url',
         },
         {
           reviewId: 2,
-          url: 'http://example.com/review_image_2.jpg',
+          url: 'image1.url',
+        },
+        {
+          reviewId: 3,
+          url: 'image2.url',
         },
       ],
       { validate: true }

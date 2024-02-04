@@ -3,6 +3,10 @@ const moment = require('moment');
 
 const { handleValidationErrors } = require('./validation');
 
+const validateUrl = [
+  check('url').isURL().withMessage('Invalid URL format'),
+  handleValidationErrors,
+];
 const validateQueryParams = [
   query('page')
     .optional()
@@ -22,13 +26,7 @@ const validateQueryParams = [
 const validateSpotCreation = [
   check('address')
     .exists({ checkFalsy: true })
-    .withMessage('Street address is required')
-    .custom(async (value) => {
-      const existingSpot = await Spot.findOne({ where: { address: value } });
-      if (existingSpot) {
-        return Promise.reject('Address must be unique');
-      }
-    }),
+    .withMessage('Street address is required'),
   check('city').exists({ checkFalsy: true }).withMessage('City is required'),
   check('state').exists({ checkFalsy: true }).withMessage('State is required'),
   check('country')
@@ -114,6 +112,7 @@ const validateBookingDates = [
   handleValidationErrors,
 ];
 module.exports = {
+  validateUrl,
   validateQueryParams,
   validateSpotCreation,
   validateSpotEdit,

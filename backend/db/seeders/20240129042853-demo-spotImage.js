@@ -11,14 +11,34 @@ module.exports = {
     await SpotImage.bulkCreate(
       [
         {
-          spotId: 1, // assuming the first spot has an id of 1
-          url: 'http://example.com/spot_image_1.jpg',
+          spotId: 1,
+          url: 'image.url',
           preview: true,
         },
         {
-          spotId: 2, // assuming the first spot has an id of 1
-          url: 'http://example.com/spot_image_2.jpg',
+          spotId: 2,
+          url: 'image1.url',
           preview: false,
+        },
+        {
+          spotId: 3,
+          url: 'image2.url',
+          preview: true,
+        },
+        {
+          spotId: 4,
+          url: 'image.url',
+          preview: true,
+        },
+        {
+          spotId: 5,
+          url: 'image1.url',
+          preview: true,
+        },
+        {
+          spotId: 6,
+          url: 'image2.url',
+          preview: true,
         },
       ],
       { validate: true }
