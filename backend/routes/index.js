@@ -17,6 +17,12 @@ router.get('/api/csrf/restore', (req, res) => {
   });
 });
 
+router.get('/', (req, res) => {
+  res.status(200).json({
+    Message: 'my name is kkkkkk',
+  });
+});
+
 router.use('/api', apiRouter);
 
 module.exports = router;
