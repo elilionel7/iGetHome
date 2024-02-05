@@ -135,7 +135,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
     });
 
     const spots = spotsCurUser.map((spot) => {
-      const spotJson = spot.toJSON(); // Convert to a plain JSON object
+      const spotJson = spot.toJSON() ? spot.toJSON() : spot; // Convert to a plain JSON object
       const previewImage =
         spotJson.SpotImages && spotJson.SpotImages.length > 0
           ? spotJson.SpotImages[0].url
