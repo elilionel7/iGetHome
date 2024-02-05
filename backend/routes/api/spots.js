@@ -77,18 +77,6 @@ router.get('/', validateQueryParams, async (req, res, next) => {
       distinct: true,
     });
 
-    // const spots = spotsData.rows.map((spot) => {
-    //   const spotJSON = spot.toJSON();
-    //   const previewImage = spotJSON.SpotImages.length
-    //     ? spotJSON.SpotImages[0].url
-    //     : null;
-    //   delete spotJSON.SpotImages;
-    //   return {
-    //     ...spotJSON,
-    //     avgRating: spotJSON.avgRating || null,
-    //     previewImage,
-    //   };
-    // });
     const spots = spotsData.rows.map((spot) => {
       const previewImage = spot['SpotImages.url']
         ? spot['SpotImages.url']
@@ -105,7 +93,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
         lng: spot.lng,
         name: spot.name,
         price: spot.price,
-        avgRating: spot.avgRating || null,
+        avgRating: parseFloat(spot.avgRating) || null,
         previewImage: previewImage,
       };
     });
