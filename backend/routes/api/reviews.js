@@ -174,6 +174,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
         },
         {
           model: Spot,
+          as: 'Spot',
           attributes: [
             'id',
             'ownerId',
@@ -197,6 +198,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
         {
           model: ReviewImage,
           attributes: ['id', 'url'],
+          as: 'ReviewImages',
         },
       ],
     });
