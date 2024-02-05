@@ -17,7 +17,7 @@ const {
   ReviewImage,
   Booking,
 } = require('../../db/models');
-const { Op, fn, col, cast } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
 const Sequelize = require('sequelize');
 
 const router = express.Router();
@@ -70,7 +70,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
           required: false,
         },
       ],
-      group: ['SpotImages.id'],
+      group: ['SpotImages.id', 'Spot.id'],
       limit: size,
       offset: (page - 1) * size,
       subQuery: false,
@@ -128,7 +128,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
           limit: 1,
         },
       ],
-      group: ['SpotImages.id'],
+      group: ['SpotImages.id', 'Spot.id'],
       subQuery: false,
     });
 
@@ -180,7 +180,7 @@ router.get('/:spotId', async (req, res, next) => {
           [fn('AVG', col('Reviews.stars')), 'avgStarRating'],
         ],
       },
-      group: ['SpotImages.id', 'Owner.id'],
+      group: ['SpotImages.id', 'Owner.id', 'Spot.id'],
     });
 
     if (!spot) {
