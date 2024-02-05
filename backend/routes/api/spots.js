@@ -89,10 +89,10 @@ router.get('/', validateQueryParams, async (req, res, next) => {
         city: spot.city,
         state: spot.state,
         country: spot.country,
-        lat: spot.lat,
-        lng: spot.lng,
+        lat: parseFloat(spot.lat),
+        lng: parseFloat(spot.lng),
         name: spot.name,
-        price: spot.price,
+        price: parseFloat(spot.price),
         avgRating: parseFloat(spot.dataValues.avgRating) || null,
         previewImage: previewImage,
       };
@@ -137,9 +137,18 @@ router.get('/current', requireAuth, async (req, res, next) => {
 
     const formattedSpots = spots.map((spot) => {
       const spotPlain = spot.get({ plain: true });
-      delete spotPlain.SpotImages;
+      //delete spotPlain.SpotImages;
       return {
-        ...spotPlain,
+        id: spotPlain.id,
+        ownerId: spotPlain.ownerId,
+        address: spotPlain.address,
+        city: spotPlain.city,
+        state: spotPlain.state,
+        country: spotPlain.country,
+        lat: parseFloat(spotPlain.lat),
+        lng: parseFloat(spotPlain.lng),
+        name: spotPlain.name,
+        description: spotPlain.description,
         avgRating: parseFloat(spotPlain.avgRating), // Format avgRating
         previewImage:
           spot.SpotImages && spot.SpotImages.length > 0
