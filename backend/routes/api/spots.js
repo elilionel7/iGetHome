@@ -149,6 +149,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
         lng: parseFloat(spotPlain.lng),
         name: spotPlain.name,
         description: spotPlain.description,
+        price: parseFloat(spotPlain.price),
         avgRating: parseFloat(spotPlain.avgRating), // Format avgRating
         previewImage:
           spot.SpotImages && spot.SpotImages.length > 0
