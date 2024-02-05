@@ -79,8 +79,9 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 
     const spots = spotsData.rows.map((spot) => {
       const previewImage =
-        spot.SpotImages.find((si) => si.preview)?.url || null;
-
+        spot.SpotImages && spot.SpotImages.length > 0
+          ? spot.SpotImages[0].url
+          : null;
       return {
         id: spot.id,
         ownerId: spot.ownerId,
@@ -109,49 +110,45 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 // Get spots by current user
 router.get('/current', requireAuth, async (req, res, next) => {
   try {
-    const curUserId = req.user.id;
-    const spotsCurUser = await Spot.findAll({
-      where: { ownerId: curUserId },
-      attributes: [
-        'id',
-        'ownerId',
-        'address',
-        'city',
-        'state',
-        'country',
-        'lat',
-        'lng',
-        'name',
-        'price',
-        [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgRating'],
-      ],
+    const userId = req.user.id;
+    const spots = await Spot.findAll({
+      where: { ownerId: userId },
       include: [
+        {
+          model: SpotImage,
+          as: 'SpotImages',
+          attributes: ['url'],
+          where: { preview: true },
+          required: false,
+        },
         {
           model: Review,
           attributes: [],
         },
-        {
-          model: SpotImage,
-          as: 'SpotImages',
-          attributes: [],
-          where: { preview: true },
-          required: false,
-        },
       ],
+      attributes: {
+        include: [
+          [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgRating'],
+        ],
+        exclude: ['Reviews.stars'],
+      },
       group: ['Spot.id', 'SpotImages.id'],
-      raw: true,
-      nest: true,
     });
 
-    const spots = spotsCurUser.map((spot) => {
+    const formattedSpots = spots.map((spot) => {
+      const spotPlain = spot.get({ plain: true });
+      delete spotPlain.SpotImages;
       return {
-        ...spot,
-        previewImage: spot['SpotImages.url'] || null,
-        avgRating: parseFloat(spot.avgRating) || null,
+        ...spotPlain,
+        avgRating: parseFloat(spotPlain.avgRating), // Format avgRating
+        previewImage:
+          spot.SpotImages && spot.SpotImages.length > 0
+            ? spot.SpotImages[0].url
+            : null,
       };
     });
 
-    res.status(200).json({ Spots: spots });
+    res.json({ Spots: formattedSpots });
   } catch (error) {
     next(error);
   }
