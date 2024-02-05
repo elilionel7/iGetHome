@@ -70,7 +70,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
           required: false,
         },
       ],
-      group: ['Spot.id'],
+      group: ['SpotImages.id'],
       limit: size,
       offset: (page - 1) * size,
       subQuery: false,
@@ -128,7 +128,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
           limit: 1,
         },
       ],
-      group: ['Spot.id'],
+      group: ['SpotImages.id'],
       subQuery: false,
     });
 
@@ -180,7 +180,7 @@ router.get('/:spotId', async (req, res, next) => {
           [fn('AVG', col('Reviews.stars')), 'avgStarRating'],
         ],
       },
-      group: ['Spot.id', 'SpotImages.id', 'Owner.id'],
+      group: ['SpotImages.id', 'Owner.id'],
     });
 
     if (!spot) {
