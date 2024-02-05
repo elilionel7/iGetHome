@@ -101,6 +101,58 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 });
 
 // Get spots by current user
+// router.get('/current', requireAuth, async (req, res, next) => {
+//   try {
+//     const curUserId = req.user.id;
+//     const spotsCurUser = await Spot.findAll({
+//       where: { ownerId: curUserId },
+//       attributes: [
+//         'id',
+//         ///include: [
+//         [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgRating'],
+//       ],
+
+//       include: [
+//         {
+//           model: Review,
+//           attributes: [],
+//           required: false,
+//         },
+//         {
+//           model: SpotImage,
+//           as: 'SpotImages',
+//           attributes: ['url'],
+//           where: {
+//             preview: true,
+//           },
+//           required: false,
+//           //limit: 1,
+//         },
+//       ],
+//       group: ['Spot.id', 'SpotImages.id'],
+//       //subQuery: false,
+//       raw: true,
+//     });
+
+//     const spots = spotsCurUser.map((spot) => {
+//       const spotJson = spot.toJSON() ? spot.toJSON() : spot; // Convert to a plain JSON object
+//       const previewImage =
+//         spotJson.SpotImages && spotJson.SpotImages.length > 0
+//           ? spotJson.SpotImages[0].url
+//           : null;
+//       delete spotJson.SpotImages;
+//       return {
+//         ...spotJson,
+//         avgRating: spotJson.avgRating ? parseFloat(spotJson.avgRating) : null,
+//         previewImage,
+//       };
+//     });
+
+//     res.status(200).json({ Spots: spots });
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 router.get('/current', requireAuth, async (req, res, next) => {
   try {
     const curUserId = req.user.id;
@@ -108,43 +160,40 @@ router.get('/current', requireAuth, async (req, res, next) => {
       where: { ownerId: curUserId },
       attributes: [
         'id',
-        ///include: [
+        'ownerId',
+        'address',
+        'city',
+        'state',
+        'country',
+        'lat',
+        'lng',
+        'name',
+        'price',
         [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgRating'],
       ],
-
       include: [
         {
           model: Review,
           attributes: [],
-          required: false,
         },
         {
           model: SpotImage,
           as: 'SpotImages',
-          attributes: ['url'],
-          where: {
-            preview: true,
-          },
+          attributes: [],
+          where: { preview: true },
           required: false,
-          //limit: 1,
         },
       ],
       group: ['Spot.id', 'SpotImages.id'],
-      //subQuery: false,
       raw: true,
+      nest: true,
     });
 
     const spots = spotsCurUser.map((spot) => {
-      const spotJson = spot.toJSON() ? spot.toJSON() : spot; // Convert to a plain JSON object
-      const previewImage =
-        spotJson.SpotImages && spotJson.SpotImages.length > 0
-          ? spotJson.SpotImages[0].url
-          : null;
-      delete spotJson.SpotImages;
       return {
-        ...spotJson,
-        avgRating: spotJson.avgRating ? parseFloat(spotJson.avgRating) : null,
-        previewImage,
+        ...spot,
+        previewImage: spot['SpotImages.url'] || null,
+        avgRating: parseFloat(spot.avgRating) || null,
       };
     });
 
