@@ -97,7 +97,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
     //     previewImage: previewImage,
     //   };
     // });
-    const spots = spotsCurUser.map((spot) => {
+    const spots = spotsData.map((spot) => {
       return {
         ...spot,
         previewImage: spot['SpotImages.url'] || null,
