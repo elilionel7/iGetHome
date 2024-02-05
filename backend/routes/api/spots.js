@@ -106,11 +106,12 @@ router.get('/current', requireAuth, async (req, res, next) => {
     const curUserId = req.user.id;
     const spotsCurUser = await Spot.findAll({
       where: { ownerId: curUserId },
-      attributes: {
-        include: [
-          [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgRating'],
-        ],
-      },
+      attributes: [
+        'id',
+        ///include: [
+        [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgRating'],
+      ],
+
       include: [
         {
           model: Review,
@@ -125,11 +126,12 @@ router.get('/current', requireAuth, async (req, res, next) => {
             preview: true,
           },
           required: false,
-          limit: 1,
+          //limit: 1,
         },
       ],
-      group: ['SpotImages.id', 'Spot.id'],
+      group: ['Spot.id', 'SpotImages.id'],
       //subQuery: false,
+      raw: true,
     });
 
     const spots = spotsCurUser.map((spot) => {
