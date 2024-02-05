@@ -1,31 +1,23 @@
 // backend/routes/api/reviews.js
 const express = require('express');
 const { requireAuth } = require('../../utils/auth');
-const { literal } = require('sequelize');
 const { validateReview } = require('../../utils/validateSomeRoutes');
 
-const {
-  Spot,
-  Review,
-  SpotImage,
-  User,
-  ReviewImage,
-} = require('../../db/models');
+const { Spot, Review, User, ReviewImage } = require('../../db/models');
 
 const router = express.Router();
 
 // Get All Reviews of the Current User
-//
 router.get('/current', requireAuth, async (req, res, next) => {
   try {
-    const userId = req.user.id; // The authenticated user's ID should be set on the request object
+    const userId = req.user.id;
 
     const reviews = await Review.findAll({
       where: { userId },
       include: [
         {
           model: User,
-          as: 'User', // Replace with your actual alias if different
+          as: 'User',
           attributes: ['id', 'firstName', 'lastName'],
         },
         {
@@ -43,12 +35,11 @@ router.get('/current', requireAuth, async (req, res, next) => {
             'name',
             'price',
           ],
-          // No include here for ReviewImage, because it's not associated with Spot directly
         },
         {
           model: ReviewImage,
           attributes: ['id', 'url'],
-          as: 'ReviewImages', // Replace with your actual alias if different
+          as: 'ReviewImages',
         },
       ],
     });

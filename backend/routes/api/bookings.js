@@ -32,7 +32,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
               as: 'SpotImages',
               attributes: ['url'],
               where: { preview: true },
-              required: false, // query does not fail if no SpotImages are found
+              required: false,
             },
           ],
         },
@@ -142,36 +142,7 @@ router.put(
   }
 );
 
-// Delete a booking
-// router.delete('/:bookingId', requireAuth, async (req, res, next) => {
-//   try {
-//     const { bookingId } = req.params;
-//     const booking = await Booking.findByPk(bookingId, {
-//       include: {
-//         model: Spot,
-//         attributes: ['ownerId'],
-//       },
-//     });
-
-//     if (!booking) {
-//       return res.status(404).json({ message: "Booking couldn't be found" });
-//     }
-
-//     if (booking.userId !== userId && booking.Spot.ownerId !== userId) {
-//       return res.status(403).json({ message: 'Forbidden' });
-//     }
-//     if (new Date(booking.startDate) <= new Date()) {
-//       return res
-//         .status(403)
-//         .json({ message: "Bookings that have been started can't be deleted" });
-//     }
-
-//     await booking.destroy();
-//     res.json({ message: 'Successfully deleted' });
-//   } catch (error) {
-//     next(error);
-//   }
-// });
+// delete a booking
 router.delete('/:bookingId', requireAuth, async (req, res, next) => {
   try {
     const { bookingId } = req.params;
