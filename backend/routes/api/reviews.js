@@ -169,7 +169,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
       include: [
         {
           model: User,
-          as: 'User',
+          as: 'User', // Replace with your actual alias if different
           attributes: ['id', 'firstName', 'lastName'],
         },
         {
@@ -187,18 +187,12 @@ router.get('/current', requireAuth, async (req, res, next) => {
             'name',
             'price',
           ],
-          include: [
-            {
-              model: ReviewImage,
-              attributes: ['url'],
-              as: 'previewImage', // You need to set the association alias in your Spot model if it's not the default
-            },
-          ],
+          // No include here for ReviewImage, because it's not associated with Spot directly
         },
         {
           model: ReviewImage,
           attributes: ['id', 'url'],
-          as: 'ReviewImages',
+          as: 'ReviewImages', // Replace with your actual alias if different
         },
       ],
     });
