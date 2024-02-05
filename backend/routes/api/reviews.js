@@ -15,6 +15,61 @@ const {
 const router = express.Router();
 
 // Get All Reviews of the Current User
+// router.get('/current', requireAuth, async (req, res, next) => {
+//   try {
+//     const reviews = await Review.findAll({
+//       where: { userId: req.user.id },
+//       include: [
+//         {
+//           model: User,
+//           as: 'User',
+//           attributes: ['id', 'firstName', 'lastName'],
+//         },
+//         {
+//           model: Spot,
+//           as: 'Spot',
+//           attributes: [
+//             'id',
+//             'ownerId',
+//             'address',
+//             'city',
+//             'state',
+//             'country',
+//             'lat',
+//             'lng',
+//             'name',
+//             'price',
+//             [
+//               literal(`(
+//                 SELECT url FROM "SpotImages" WHERE
+//                 "SpotImages"."spotId" = "Spot"."id" AND
+//                 "SpotImages"."preview" = true
+//                 LIMIT 1
+//             )`),
+//               'previewImage',
+//             ],
+//           ],
+//         },
+//         {
+//           model: ReviewImage,
+//           attributes: ['id', 'url'],
+//           as: 'ReviewImages',
+//         },
+//       ],
+//     });
+
+//     const formattedReviews = reviews.map((review) => ({
+//       ...review.get({ plain: true }),
+//       createdAt: review.createdAt,
+//       updatedAt: review.updatedAt,
+//     }));
+
+//     res.json({ Reviews: formattedReviews });
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
 router.get('/current', requireAuth, async (req, res, next) => {
   try {
     const reviews = await Review.findAll({
@@ -28,27 +83,30 @@ router.get('/current', requireAuth, async (req, res, next) => {
         {
           model: Spot,
           as: 'Spot',
-          attributes: [
-            'id',
-            'ownerId',
-            'address',
-            'city',
-            'state',
-            'country',
-            'lat',
-            'lng',
-            'name',
-            'price',
-            [
-              literal(`(
-                SELECT url FROM "SpotImages" WHERE
-                "SpotImages"."spotId" = "Spot"."id" AND
-                "SpotImages"."preview" = true
-                LIMIT 1
-            )`),
-              'previewImage',
+          attributes: {
+            include: [
+              'id',
+              'ownerId',
+              'address',
+              'city',
+              'state',
+              'country',
+              'lat',
+              'lng',
+              'name',
+              'price',
+              [
+                // Ensure your literal query syntax matches PostgreSQL's expectations
+                literal(`(
+                  SELECT "url" FROM "SpotImages" WHERE
+                  "SpotImages"."spotId" = "Spot"."id" AND
+                  "SpotImages"."preview" IS TRUE
+                  LIMIT 1
+                )`),
+                'previewImage',
+              ],
             ],
-          ],
+          },
         },
         {
           model: ReviewImage,
@@ -56,10 +114,13 @@ router.get('/current', requireAuth, async (req, res, next) => {
           as: 'ReviewImages',
         },
       ],
+      raw: true,
+      nest: true,
     });
 
     const formattedReviews = reviews.map((review) => ({
-      ...review.get({ plain: true }),
+      ...review,
+      // Assuming createdAt and updatedAt are direct properties of the review
       createdAt: review.createdAt,
       updatedAt: review.updatedAt,
     }));
