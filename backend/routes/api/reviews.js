@@ -98,9 +98,9 @@ router.get('/current', requireAuth, async (req, res, next) => {
               [
                 // Ensure your literal query syntax matches PostgreSQL's expectations
                 literal(`(
-                  SELECT "url" FROM "SpotImage" WHERE
-                  "SpotImage"."spotId" = "Spot"."id" AND
-                  "SpotImage"."preview" IS TRUE
+                  SELECT "url" FROM "SpotImages" AS "SpotImage" WHERE
+                  "SpotImages"."spotId" = "Spot"."id" AND
+                  "SpotImages"."preview" IS TRUE
                   LIMIT 1
                 )`),
                 'previewImage',
