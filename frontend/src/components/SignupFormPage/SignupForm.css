@@ -1,0 +1,15 @@
+/* frontend/src/components/SignupFormPage/SignupForm.css */
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+}
+
+input {
+    margin-bottom: 10px;
+}
+
+button {
+    cursor: pointer;
+}
