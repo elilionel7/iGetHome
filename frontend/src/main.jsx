@@ -6,12 +6,16 @@ import App from './App';
 import './index.css';
 import {store} from './store/store'
 import { restoreCSRF, csrfFetch } from './store/csrf';
+import * as sessionActions from './store/session';
+
 
 if (import.meta.env.MODE !== 'production') {
   restoreCSRF();
 
   window.csrfFetch = csrfFetch;
   window.store = store;
+  window.sessionActions = sessionActions;
+
 }
 
 
