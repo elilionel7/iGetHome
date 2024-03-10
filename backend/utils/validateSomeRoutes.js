@@ -1,7 +1,20 @@
+// backend/utils/validateSomeRoutes.js
 const { check, body, query } = require('express-validator');
 const moment = require('moment');
 
 const { handleValidationErrors } = require('./validation');
+
+const validateLogin = [
+  check('credential')
+    .exists({ checkFalsy: true })
+    .notEmpty()
+    .withMessage('Email or username is required.'),
+  check('password')
+    .exists({ checkFalsy: true })
+    .withMessage('Password is required.'),
+  handleValidationErrors,
+];
+
 
 const validateSignup = [
   check('email', 'Invalid email').isEmail(),
@@ -151,4 +164,5 @@ module.exports = {
   validateReview,
   validateBookingDates,
   validateSignup,
+  validateLogin,
 };
