@@ -5,8 +5,7 @@ import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import * as sessionActions from './store/session';
 import LoginFormPage from './components/LoginFormPage/LoginFormPage';
 import SignupFormPage from './components/SignupFormPage/SignupFormPage';
-
-
+import Navigation from './components/Navigation/Navigation';
 
 function Layout() {
   const dispatch = useDispatch();
@@ -16,7 +15,12 @@ function Layout() {
     dispatch(sessionActions.restoreUser()).then(() => setIsLoaded(true));
   }, [dispatch]);
 
-  return <>{isLoaded && <Outlet />}</>;
+  return (
+    <>
+      <Navigation isLoaded={isLoaded} />
+      {isLoaded && <Outlet />}
+    </>
+  );
 }
 
 // Define your routes
@@ -28,7 +32,8 @@ const router = createBrowserRouter([
       { path: '/', element: <h1>Welcome!</h1> },
       { path: '/login', element: <LoginFormPage /> },
       {
-        path: '/signup', element: <SignupFormPage />,
+        path: '/signup',
+        element: <SignupFormPage />,
       },
       // Define more routes as needed
     ],

@@ -1,4 +1,4 @@
-// frontend/src/components/LoginFormPage/LoginFormPage.jsx
+// // frontend/src/components/LoginFormPage/LoginFormPage.jsx
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
@@ -17,11 +17,18 @@ function LoginFormPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
+
     try {
-      await dispatch(sessionActions.login({ credential, password })).unwrap();
-    } catch (res) {
-      const data = await res.json();
-      if (data && data.errors) setErrors(data.errors);
+      await dispatch(sessionActions.login({ credential, password }));
+    } catch (error) {
+      const errorData = await error.json();
+      if (errorData.message) {
+        setErrors({ message: errorData.message });
+      } else if (errorData.errors) {
+        setErrors(errorData.errors);
+      } else {
+        setErrors({});
+      }
     }
   };
 
@@ -29,6 +36,15 @@ function LoginFormPage() {
     <>
       <h1>Log In</h1>
       <form onSubmit={handleSubmit}>
+        <div>
+          {errors.message && <div className="error">{errors.message}</div>}
+        </div>
+        <div>
+          {errors.credential && (
+            <div className="error">{errors.credential}</div>
+          )}
+          {errors.password && <div className="error">{errors.password}</div>}
+        </div>
         <label>
           Username or Email
           <input
@@ -47,15 +63,9 @@ function LoginFormPage() {
             required
           />
         </label>
-        <ul>
-          {errors.map((error, idx) => (
-            <li key={idx}>{error}</li>
-          ))}
-        </ul>
         <button type="submit">Log In</button>
       </form>
     </>
   );
 }
-
 export default LoginFormPage;
